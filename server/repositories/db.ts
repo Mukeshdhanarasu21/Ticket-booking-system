@@ -21,10 +21,31 @@ export interface EventRecord {
   total_capacity: number;
   price: number;
   status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  image_url?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
+  category?: 'MOVIE' | 'SPORT' | 'CONCERT' | 'TECH' | 'COMEDY' | 'ROADSHOW' | string;
+  city?: string;
+  genre?: string;
+  language?: string;
+  duration?: string;
+  rating?: string;
+  theatre?: string;
+  showtimes?: string[];
+  format?: string;
+  badge?: string;
+  teams?: {
+    teamA: string;
+    teamB: string;
+    tournament?: string;
+    teamAShort?: string;
+    teamBShort?: string;
+    teamAColor?: string;
+    teamBColor?: string;
+  };
 }
+
 
 export interface SeatRecord {
   id: string;
@@ -105,7 +126,7 @@ class DatabaseStore {
     });
 
     const sampleEvents: Omit<EventRecord, 'created_at' | 'updated_at'>[] = [
-      // ── Original 5 events — Tamil Nadu venues ──
+      // ── Event 1: Tech Summit ──
       {
         id: '11111111-1111-1111-1111-111111111111',
         title: 'Global Tech Summit 2026',
@@ -117,47 +138,89 @@ class DatabaseStore {
         total_capacity: 40,
         price: 2999,
         status: 'PUBLISHED',
+        image_url: '/events/global-tech-summit.jpg',
+        category: 'TECH',
+        city: 'Chennai',
+        genre: 'Technology & AI',
+        badge: 'Keynote & AI Expo',
         created_by: adminId,
       },
+      // ── Event 2: Blockbuster Movie (The Greatest of All Time - GOAT) ──
       {
         id: '22222222-2222-2222-2222-222222222222',
-        title: 'Neon Nights Music Festival',
-        description: 'An unforgettable night of synthwave, electronic beats, and immersive visual performances under the Chennai sky.',
-        venue: 'Island Grounds Open Arena, Chennai',
-        event_date: '2026-10-02',
-        start_time: '07:00 PM',
-        end_time: '11:30 PM',
-        total_capacity: 60,
-        price: 1499,
+        title: 'The Greatest of All Time (GOAT)',
+        description: 'Thalapathy Vijay stars in a mind-bending dual-role espionage action thriller directed by Venkat Prabhu with pulse-pounding Yuvan Shankar Raja musical score.',
+        venue: 'In Cinemas Worldwide',
+        theatre: 'PVR INOX LUXE & Broadway Cinemas',
+        event_date: '2026-09-05',
+        start_time: '06:45 PM',
+        end_time: '09:45 PM',
+        total_capacity: 220,
+        price: 410,
         status: 'PUBLISHED',
+        image_url: '/events/goat.jpg',
+        category: 'MOVIE',
+        city: 'Chennai · Coimbatore',
+        genre: 'Sci-Fi Action · Spy Thriller',
+        language: 'Tamil · Telugu · Hindi',
+        duration: '2h 58m',
+        rating: 'UA16+',
+        format: 'IMAX 4K Laser · 360° Atmos',
+        showtimes: ['10:30 AM', '02:15 PM', '06:45 PM', '10:20 PM'],
+        badge: 'Mega Blockbuster',
         created_by: adminId,
       },
+      // ── Event 3: Blockbuster Movie (Dragon) ──
       {
         id: '33333333-3333-3333-3333-333333333333',
-        title: 'Symphonic Masterpieces Live',
-        description: 'Experience classical Carnatic and western orchestral elegance performed by the Tamil Nadu Philharmonic Orchestra.',
-        venue: 'Kalaivanar Arangam, Anna Salai, Chennai',
-        event_date: '2026-11-20',
-        start_time: '06:30 PM',
+        title: 'Dragon',
+        description: 'Pradeep Ranganathan stars and directs in an electrifying youth romantic entertainer featuring viral chartbuster songs and high-energy drama.',
+        venue: 'In Cinemas Worldwide',
+        theatre: 'PVR INOX LUXE & Broadway Cinemas',
+        event_date: '2026-11-12',
+        start_time: '07:00 PM',
         end_time: '09:30 PM',
-        total_capacity: 100,
-        price: 999,
+        total_capacity: 220,
+        price: 410,
         status: 'PUBLISHED',
+        image_url: '/events/dragon.png',
+        category: 'MOVIE',
+        city: 'Chennai · Coimbatore',
+        genre: 'Romance · Comedy · Youth Drama',
+        language: 'Tamil (English Subtitles)',
+        duration: '2h 30m',
+        rating: 'U',
+        format: 'IMAX 4K Laser · Dolby Atmos',
+        showtimes: ['11:00 AM', '03:15 PM', '07:00 PM', '10:30 PM'],
+        badge: 'Youth Sensation',
         created_by: adminId,
       },
+      // ── Event 4: Blockbuster Movie (Kantara: Chapter 1) ──
       {
         id: '44444444-4444-4444-4444-444444444444',
-        title: 'Stand-up Comedy Gala',
-        description: 'Laugh out loud with Tamil Nadu\'s top stand-up comedians and surprise celebrity guests live on stage.',
-        venue: 'Nehru Indoor Stadium, Chennai',
-        event_date: '2026-08-25',
+        title: 'Kantara: Chapter 1',
+        description: 'Rishab Shetty returns to the divine forest legend in this visual spectacle exploring the ancient roots of the Kadambas and divine spirits.',
+        venue: 'In Cinemas Worldwide',
+        theatre: 'PVR INOX LUXE & Broadway Cinemas',
+        event_date: '2026-11-28',
         start_time: '08:00 PM',
-        end_time: '10:00 PM',
-        total_capacity: 50,
-        price: 799,
+        end_time: '10:50 PM',
+        total_capacity: 220,
+        price: 410,
         status: 'PUBLISHED',
+        image_url: '/events/kantara.png',
+        category: 'MOVIE',
+        city: 'Chennai · Coimbatore',
+        genre: 'Mythological Action · Folklore Drama',
+        language: 'Kannada · Tamil · Telugu · Hindi',
+        duration: '2h 50m',
+        rating: 'UA16+',
+        format: '4K RGB Laser · Dolby Atmos',
+        showtimes: ['10:30 AM', '02:15 PM', '06:45 PM', '10:20 PM'],
+        badge: 'Pan-India Phenomenon',
         created_by: adminId,
       },
+      // ── Event 5: AI Workshop ──
       {
         id: '55555555-5555-5555-5555-555555555555',
         title: 'Future of Web & AI Workshop',
@@ -169,10 +232,14 @@ class DatabaseStore {
         total_capacity: 80,
         price: 4999,
         status: 'PUBLISHED',
+        image_url: '/events/ai-workshop.jpg',
+        category: 'TECH',
+        city: 'Coimbatore',
+        genre: 'Hands-on Masterclass',
+        badge: 'Certified Workshop',
         created_by: adminId,
       },
-
-      // ── NEW: Concerts ──
+      // ── Event 6: AR Rahman Concert ──
       {
         id: '66666666-6666-6666-6666-666666666666',
         title: 'AR Rahman Live — Isai Mazhai Concert',
@@ -184,36 +251,68 @@ class DatabaseStore {
         total_capacity: 120,
         price: 2499,
         status: 'PUBLISHED',
+        image_url: '/events/ar-rahman-concert.jpg',
+        category: 'CONCERT',
+        city: 'Chennai',
+        genre: 'Live Symphony & Beats',
+        badge: 'Maestro Live',
         created_by: adminId,
       },
+      // ── Event 7: Blockbuster Movie (Coolie) ──
       {
         id: '77777777-7777-7777-7777-777777777777',
-        title: 'Kollywood Stars Night — Award Gala Concert',
-        description: 'A dazzling evening of live performances, award ceremonies, and appearances by your favourite Tamil cinema stars and playback singers.',
-        venue: 'Jawaharlal Nehru Stadium, Periyamet, Chennai',
+        title: 'Coolie',
+        description: 'Superstar Rajinikanth in a high-octane spectacle directed by Lokesh Kanagaraj. Experience pulse-pounding action in laser sharp IMAX 4K and 360° Dolby Atmos sound.',
+        venue: 'In Cinemas Worldwide',
+        theatre: 'PVR INOX LUXE & Broadway Cinemas',
         event_date: '2026-10-18',
-        start_time: '05:00 PM',
-        end_time: '10:00 PM',
-        total_capacity: 150,
-        price: 1999,
+        start_time: '06:45 PM',
+        end_time: '09:45 PM',
+        total_capacity: 220,
+        price: 410,
         status: 'PUBLISHED',
+        image_url: '/events/coolie.jpg',
+        category: 'MOVIE',
+        city: 'Chennai · Coimbatore',
+        genre: 'Action · Drama · Thriller',
+        language: 'Tamil (English Subtitles)',
+        duration: '2h 45m',
+        rating: 'UA16+',
+        format: 'Phoenix IMAX 4K Laser · Dolby Atmos',
+        showtimes: ['10:30 AM', '02:15 PM', '06:45 PM', '10:15 PM'],
+        badge: 'Phoenix IMAX Blockbuster',
         created_by: adminId,
       },
+      // ── Event 8: Sports Derby (CSK vs MI TATA IPL 2026) ──
       {
         id: '88888888-8888-8888-8888-888888888888',
-        title: 'Yuvan Shankar Raja — Rhythm of Youth',
-        description: 'Chart-topping composer Yuvan Shankar Raja brings his electrifying beats and soulful melodies to Coimbatore in a night you will never forget.',
-        venue: 'VOC Park & Stadium, Coimbatore',
+        title: 'CSK vs MI — TATA IPL 2026 Blockbuster Derby',
+        description: 'The El Clásico of cricket returns! Chennai Super Kings battle arch-rivals Mumbai Indians under floodlights in an electric atmosphere at the iconic Chepauk stadium.',
+        venue: 'MA Chidambaram Stadium (Chepauk), Triplicane, Chennai',
         event_date: '2026-11-08',
-        start_time: '07:00 PM',
+        start_time: '07:30 PM',
         end_time: '11:00 PM',
         total_capacity: 90,
-        price: 1499,
+        price: 1500,
         status: 'PUBLISHED',
+        image_url: '/events/yuvan-rhythm-of-youth.jpg',
+        category: 'SPORT',
+        city: 'Chennai',
+        genre: 'T20 Cricket Derby',
+        format: 'TATA IPL 2026 Live Match',
+        badge: '🔥 Hot Selling Match',
+        teams: {
+          teamA: 'Chennai Super Kings',
+          teamB: 'Mumbai Indians',
+          tournament: 'TATA IPL 2026 Season 19',
+          teamAShort: 'CSK',
+          teamBShort: 'MI',
+          teamAColor: '#FACC15',
+          teamBColor: '#3B82F6',
+        },
         created_by: adminId,
       },
-
-      // ── NEW: Road Shows ──
+      // ── Event 9: Road Show ──
       {
         id: '99999999-9999-9999-9999-999999999999',
         title: 'Chennai Grand Road Show 2026',
@@ -225,22 +324,40 @@ class DatabaseStore {
         total_capacity: 200,
         price: 499,
         status: 'PUBLISHED',
+        image_url: '/events/chennai-road-show.jpg',
+        category: 'ROADSHOW',
+        city: 'Chennai',
+        genre: 'Cultural & Carnival',
+        badge: 'All-Day Pass',
         created_by: adminId,
       },
+      // ── Event 10: Blockbuster Movie (Avatar: Fire & Ash) ──
       {
         id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-        title: 'Tamil Nadu Auto Expo Road Show',
-        description: 'Witness the latest electric vehicles, supercars, and two-wheelers at Tamil Nadu\'s biggest automotive road show with live stunts and test drives.',
-        venue: 'CODISSIA Trade Fair Complex, Avinashi Road, Coimbatore',
+        title: 'Avatar: Fire & Ash',
+        description: 'James Cameron takes us back to Pandora with a thrilling new biome of ash and flame. Witness breathtaking CGI visuals and immersive 3D surround audio.',
+        venue: 'In Cinemas Worldwide',
+        theatre: 'PVR INOX LUXE & Broadway Cinemas',
         event_date: '2026-12-20',
-        start_time: '10:00 AM',
-        end_time: '06:00 PM',
+        start_time: '07:00 PM',
+        end_time: '10:15 PM',
         total_capacity: 160,
-        price: 299,
+        price: 410,
         status: 'PUBLISHED',
+        image_url: '/events/avatar-fire-and-ash.png',
+        category: 'MOVIE',
+        city: 'Chennai · Coimbatore',
+        genre: 'Sci-Fi · Adventure · Fantasy',
+        language: 'English · Tamil (3D Laser)',
+        duration: '3h 12m',
+        rating: 'UA',
+        format: '3D Laser RGB · Dolby Atmos',
+        showtimes: ['11:00 AM', '03:15 PM', '07:00 PM', '10:45 PM'],
+        badge: 'Trending Worldwide',
         created_by: adminId,
       },
     ];
+
 
 
     const now = new Date().toISOString();
@@ -251,9 +368,41 @@ class DatabaseStore {
   }
 
   public generateSeatsForEvent(eventId: string, capacity: number) {
-    const getRowName = (index: number): string => {
+    const event = this.events.get(eventId);
+    const isPhoenixImax = event?.category === 'MOVIE' || eventId === '77777777-7777-7777-7777-777777777777';
+    const now = new Date().toISOString();
+    const prefix = eventId.length >= 24 ? eventId.substring(0, 24) : '00000000-0000-0000-0000-';
+
+    if (isPhoenixImax) {
+      // Generate authentic Phoenix IMAX screen seats across Rows A through P
+      const imaxRows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
+      let index = 1;
+      for (const r of imaxRows) {
+        const isElite = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].includes(r);
+        const maxSeatNum = 35;
+        for (let s = 1; s <= maxSeatNum; s++) {
+          const seatNumber = `${r}${s}`;
+          const seatHex = index.toString(16).padStart(12, '0');
+          const seatId = `${prefix}${seatHex}`;
+          const seatType = isElite ? 'VIP' : 'PREMIUM';
+          this.seats.set(seatId, {
+            id: seatId,
+            event_id: eventId,
+            seat_number: seatNumber,
+            row_number: r,
+            section: isElite ? 'ELITE' : 'PRIME',
+            seat_type: seatType,
+            created_at: now,
+          });
+          index++;
+        }
+      }
+      return;
+    }
+
+    const getRowName = (idx: number): string => {
       let name = '';
-      let i = index;
+      let i = idx;
       while (i >= 0) {
         name = String.fromCharCode(65 + (i % 26)) + name;
         i = Math.floor(i / 26) - 1;
@@ -262,7 +411,6 @@ class DatabaseStore {
     };
 
     const rowsNeeded = Math.ceil(capacity / 10);
-    const now = new Date().toISOString();
 
     for (let i = 0; i < rowsNeeded; i++) {
       const rowChar = getRowName(i);
@@ -275,7 +423,6 @@ class DatabaseStore {
           else if (rowChar === 'B' || rowChar === 'C') seatType = 'PREMIUM';
 
           const seatHex = seatIndex.toString(16).padStart(12, '0');
-          const prefix = eventId.length >= 24 ? eventId.substring(0, 24) : '00000000-0000-0000-0000-';
           const seatId = `${prefix}${seatHex}`;
           this.seats.set(seatId, {
             id: seatId,
@@ -313,18 +460,12 @@ class DatabaseStore {
 }
 
 // Attach to globalThis so the store survives Next.js hot-module-replacement
-// In production (NODE_ENV=production) a fresh instance is always used
 declare global {
   // eslint-disable-next-line no-var
   var __dbStore: DatabaseStore | undefined;
 }
 
-export const dbStore: DatabaseStore =
-  process.env.NODE_ENV === 'production'
-    ? new DatabaseStore()
-    : (globalThis.__dbStore ??= new DatabaseStore());
-
-// Always re-seed to ensure fix for undefined rows applies immediately
+export const dbStore: DatabaseStore = (globalThis.__dbStore ??= new DatabaseStore());
 dbStore.seedDefaults();
 
 
@@ -356,12 +497,21 @@ export async function createProfile(profileData: Partial<Profile>): Promise<Prof
   return profile;
 }
 
-export async function getEvents(params: { page: number; limit: number; status?: string; search?: string }) {
-  const { page, limit, status, search } = params;
+export async function getEvents(params: {
+  page: number;
+  limit: number;
+  status?: string;
+  search?: string;
+  category?: string;
+  city?: string;
+}) {
+  const { page, limit, status, search, category, city } = params;
 
   if (process.env.USE_LIVE_SUPABASE === 'true') {
     let query = supabaseAdmin.from('events').select('*', { count: 'exact' });
     if (status) query = query.eq('status', status);
+    if (category && category.toUpperCase() !== 'ALL') query = query.eq('category', category.toUpperCase());
+    if (city && city.toUpperCase() !== 'ALL') query = query.ilike('city', `%${city}%`);
     if (search) query = query.ilike('title', `%${search}%`);
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -383,9 +533,23 @@ export async function getEvents(params: { page: number; limit: number; status?: 
   if (status) {
     all = all.filter((e) => e.status === status);
   }
+  if (category && category.toUpperCase() !== 'ALL') {
+    const cat = category.toUpperCase();
+    all = all.filter((e) => e.category?.toUpperCase() === cat);
+  }
+  if (city && city.toUpperCase() !== 'ALL') {
+    const c = city.toLowerCase();
+    all = all.filter((e) => e.category === 'MOVIE' || e.city?.toLowerCase().includes(c) || e.venue.toLowerCase().includes(c));
+  }
   if (search) {
     const s = search.toLowerCase();
-    all = all.filter((e) => e.title.toLowerCase().includes(s) || e.venue.toLowerCase().includes(s));
+    all = all.filter(
+      (e) =>
+        e.title.toLowerCase().includes(s) ||
+        e.venue.toLowerCase().includes(s) ||
+        (e.genre && e.genre.toLowerCase().includes(s)) ||
+        (e.city && e.city.toLowerCase().includes(s))
+    );
   }
 
   all.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
@@ -404,6 +568,7 @@ export async function getEvents(params: { page: number; limit: number; status?: 
     },
   };
 }
+
 
 export async function getEventById(eventId: string) {
   if (process.env.USE_LIVE_SUPABASE === 'true') {
@@ -728,6 +893,8 @@ export async function getUserBookings(userId: string) {
             venue: eventObj.venue,
             eventDate: eventObj.event_date,
             startTime: eventObj.start_time,
+            imageUrl: eventObj.image_url,
+            image_url: eventObj.image_url,
           }
         : undefined,
     });
@@ -800,6 +967,8 @@ export async function getBookingById(bookingId: string, userId: string, isAdmin:
           eventDate: eventObj.event_date,
           startTime: eventObj.start_time,
           endTime: eventObj.end_time,
+          imageUrl: eventObj.image_url,
+          image_url: eventObj.image_url,
         }
       : undefined,
   };

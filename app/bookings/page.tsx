@@ -4,7 +4,20 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, BookingItem } from '@/lib/api/client';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { Ticket, Calendar, MapPin, AlertCircle, Loader2, XCircle } from 'lucide-react';
+import {
+  Ticket,
+  Calendar,
+  MapPin,
+  AlertCircle,
+  Loader2,
+  XCircle,
+  Film,
+  Trophy,
+  Music,
+  Tv,
+  QrCode,
+  Sparkles,
+} from 'lucide-react';
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
@@ -46,13 +59,13 @@ export default function MyBookingsPage() {
 
   if (!user) {
     return (
-      <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+      <div className="p-8 text-center glass-panel border border-slate-800 rounded-3xl space-y-4 max-w-md mx-auto my-12">
         <Ticket className="w-10 h-10 text-sky-400 mx-auto" />
         <h2 className="text-xl font-bold text-white">Authentication Required</h2>
-        <p className="text-sm text-slate-400">Please log in to view your reserved bookings.</p>
+        <p className="text-xs text-slate-400">Please log in to view your reserved bookings and receipts.</p>
         <Link
           href="/login"
-          className="inline-block px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold transition"
+          className="inline-block px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition shadow-lg"
         >
           Log In
         </Link>
@@ -63,8 +76,12 @@ export default function MyBookingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-extrabold text-white">My Bookings</h1>
-        <p className="text-sm text-slate-400">Manage your event reservations and ticket receipts.</p>
+        <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-1">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Ticket Wallet</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">My Bookings</h1>
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">Manage your event reservations, match passes, and cinema tickets.</p>
       </div>
 
       {error && (
@@ -75,20 +92,22 @@ export default function MyBookingsPage() {
       )}
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 space-y-3">
+        <div className="flex flex-col items-center justify-center py-24 space-y-3">
           <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
-          <p className="text-sm text-slate-400">Fetching your bookings...</p>
+          <p className="text-xs text-slate-400 font-medium">Fetching your tickets...</p>
         </div>
       ) : bookings.length === 0 ? (
-        <div className="text-center py-20 bg-slate-900/40 border border-slate-800 rounded-2xl space-y-4">
+        <div className="text-center py-24 glass-panel border border-slate-800 rounded-3xl space-y-4">
           <Ticket className="w-12 h-12 mx-auto text-slate-600" />
           <h3 className="text-lg font-bold text-slate-300">No Bookings Found</h3>
-          <p className="text-sm text-slate-500">You haven&apos;t reserved any event seats yet.</p>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            You haven&apos;t reserved any movie tickets, sports passes, or event seats yet.
+          </p>
           <Link
             href="/events"
-            className="inline-block px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold transition"
+            className="inline-block px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition shadow-md shadow-sky-600/30"
           >
-            Browse Events
+            Explore Experiences
           </Link>
         </div>
       ) : (
@@ -96,61 +115,79 @@ export default function MyBookingsPage() {
           {bookings.map((booking) => (
             <div
               key={booking.id}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-lg hover:border-slate-700 transition"
+              className="glass-panel border border-white/[0.08] rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl hover:border-slate-700 transition"
             >
-              <div className="space-y-2">
-                <div className="flex items-center space-x-3">
-                  <span className="font-mono font-bold text-sky-400 text-lg">{booking.bookingReference}</span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                      booking.status === 'CONFIRMED'
-                        ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                        : 'bg-rose-950 text-rose-400 border border-rose-800'
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                {/* Event Thumbnail */}
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-950 flex-shrink-0 border border-slate-800">
+                  <img
+                    src={booking.event?.image_url || booking.event?.imageUrl || '/events/global-tech-summit.jpg'}
+                    alt={booking.event?.title || 'Event'}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
-                <h3 className="text-lg font-bold text-white">{booking.event?.title || 'Event Details'}</h3>
-
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                  {booking.event?.venue && (
-                    <span className="flex items-center space-x-1">
-                      <MapPin className="w-3.5 h-3.5 text-rose-400" />
-                      <span>{booking.event.venue}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <span className="font-mono font-black text-sky-400 text-base">{booking.bookingReference}</span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                        booking.status === 'CONFIRMED'
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                          : 'bg-rose-950 text-rose-300 border border-rose-800'
+                      }`}
+                    >
+                      {booking.status}
                     </span>
-                  )}
-                  {booking.event?.eventDate && (
-                    <span className="flex items-center space-x-1">
-                      <Calendar className="w-3.5 h-3.5 text-sky-400" />
-                      <span>{booking.event.eventDate}</span>
-                    </span>
-                  )}
-                  <span>Booked: {new Date(booking.createdAt).toLocaleDateString()}</span>
-                </div>
+                  </div>
 
-                <div className="pt-2 text-xs">
-                  <span className="text-slate-400">Seats Reserved: </span>
-                  <span className="font-bold text-emerald-400">{booking.seats?.join(', ') || 'N/A'}</span>
+                  <h3 className="text-lg font-bold text-white">{booking.event?.title || 'Event Booking'}</h3>
+
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                    {booking.event?.venue && (
+                      <span className="flex items-center space-x-1">
+                        <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                        <span>{booking.event.venue}</span>
+                      </span>
+                    )}
+                    {booking.event?.eventDate && (
+                      <span className="flex items-center space-x-1">
+                        <Calendar className="w-3.5 h-3.5 text-sky-400" />
+                        <span>{booking.event.eventDate}</span>
+                      </span>
+                    )}
+                    <span>Booked on: {new Date(booking.createdAt).toLocaleDateString()}</span>
+                  </div>
+
+                  <div className="pt-1 flex flex-wrap items-center gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400">Seats Reserved: </span>
+                      <span className="font-bold text-emerald-400">{booking.seats?.join(', ') || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Total Paid: </span>
+                      <span className="font-bold text-white">₹{booking.totalAmount?.toLocaleString('en-IN') || '-'}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center space-x-3 pt-4 md:pt-0 border-t md:border-t-0 border-slate-800">
                 <Link
                   href={`/bookings/${booking.id}`}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition"
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 flex items-center space-x-1.5"
                 >
-                  View Receipt
+                  <QrCode className="w-3.5 h-3.5 text-sky-400" />
+                  <span>View Ticket Receipt</span>
                 </Link>
 
                 {booking.status === 'CONFIRMED' && (
                   <button
                     onClick={() => handleCancelBooking(booking.id)}
-                    className="px-4 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 font-semibold text-xs transition flex items-center space-x-1.5"
+                    className="px-4 py-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 font-bold text-xs transition flex items-center space-x-1.5"
                   >
-                    <XCircle className="w-4 h-4" />
-                    <span>Cancel Booking</span>
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Cancel</span>
                   </button>
                 )}
               </div>
@@ -161,3 +198,4 @@ export default function MyBookingsPage() {
     </div>
   );
 }
+

@@ -11,7 +11,7 @@ describe('Events & Seats Service Tests', () => {
   it('should fetch paginated published events', async () => {
     const res = await fetchEvents({ page: '1', limit: '10', status: 'PUBLISHED' });
     expect(res.data.length).toBeGreaterThan(0);
-    expect(res.pagination.total).toBe(5);
+    expect(res.pagination.total).toBe(10);
   });
 
   it('should fetch single event details with capacity and seat counts', async () => {

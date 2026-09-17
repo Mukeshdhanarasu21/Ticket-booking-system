@@ -154,17 +154,17 @@ export default function PaymentModal({
     /* Backdrop */
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
         onClick={step === 'SELECT' || step === 'CARD_FORM' ? handleClose : undefined}
       />
 
       {/* Modal card */}
-      <div className="relative z-10 w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-md glass-panel border border-white/[0.12] rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
           <div className="flex items-center space-x-2">
             <Lock className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-bold text-white">Secure Payment</span>
+            <span className="text-sm font-bold text-white">Secure Luxe Checkout</span>
           </div>
           {(step === 'SELECT' || step === 'CARD_FORM') && (
             <button
@@ -177,8 +177,8 @@ export default function PaymentModal({
         </div>
 
         {/* Order summary strip */}
-        <div className="px-6 py-3 bg-slate-800/50 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
-          <span className="truncate max-w-[60%]">{eventTitle}</span>
+        <div className="px-6 py-3.5 bg-slate-900/60 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <span className="truncate max-w-[60%] font-medium">{eventTitle}</span>
           <span className="font-bold text-white">
             {seatCount} seat{seatCount !== 1 ? 's' : ''} ·{' '}
             <span className="text-amber-400">₹{totalAmount.toLocaleString('en-IN')}</span>
@@ -193,7 +193,7 @@ export default function PaymentModal({
             {/* GPay */}
             <button
               onClick={() => handleSelectMethod('GPAY')}
-              className="w-full flex items-center space-x-4 p-4 rounded-xl border border-slate-700 bg-slate-800 hover:border-sky-500 hover:bg-slate-800/80 transition group"
+              className="w-full flex items-center space-x-4 p-4 rounded-2xl border border-slate-700/80 bg-slate-900/90 hover:border-sky-500 hover:bg-slate-800/90 transition group shadow-md"
             >
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow">
                 {/* Google Pay G icon */}
@@ -202,8 +202,8 @@ export default function PaymentModal({
                 </span>
               </div>
               <div className="text-left">
-                <p className="text-sm font-bold text-white group-hover:text-sky-400 transition">Google Pay</p>
-                <p className="text-[11px] text-slate-400">Pay instantly via UPI / GPay</p>
+                <p className="text-sm font-bold text-white group-hover:text-sky-400 transition">Google Pay / UPI</p>
+                <p className="text-[11px] text-slate-400">Instant one-tap verification</p>
               </div>
               <Smartphone className="w-5 h-5 text-slate-500 ml-auto group-hover:text-sky-400 transition" />
             </button>
@@ -211,7 +211,7 @@ export default function PaymentModal({
             {/* Credit / Debit Card */}
             <button
               onClick={() => handleSelectMethod('CARD')}
-              className="w-full flex items-center space-x-4 p-4 rounded-xl border border-slate-700 bg-slate-800 hover:border-amber-500 hover:bg-slate-800/80 transition group"
+              className="w-full flex items-center space-x-4 p-4 rounded-2xl border border-slate-700/80 bg-slate-900/90 hover:border-amber-500 hover:bg-slate-800/90 transition group shadow-md"
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center flex-shrink-0 shadow">
                 <CreditCard className="w-5 h-5 text-white" />
@@ -224,11 +224,12 @@ export default function PaymentModal({
             </button>
 
             <p className="text-center text-[10px] text-slate-500 flex items-center justify-center space-x-1 pt-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>256-bit SSL encrypted · Your data is never stored</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>256-bit SSL encrypted · Authentic reservation guarantee</span>
             </p>
           </div>
         )}
+
 
         {/* ── STEP: CARD FORM ── */}
         {step === 'CARD_FORM' && (

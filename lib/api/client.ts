@@ -20,9 +20,31 @@ export interface EventItem {
   capacity?: number;
   price: number;
   status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  image_url?: string;
+  imageUrl?: string;
   bookedSeats?: number;
   availableSeats?: number;
+  category?: 'MOVIE' | 'SPORT' | 'CONCERT' | 'TECH' | 'COMEDY' | 'ROADSHOW' | string;
+  city?: string;
+  genre?: string;
+  language?: string;
+  duration?: string;
+  rating?: string;
+  theatre?: string;
+  showtimes?: string[];
+  format?: string;
+  badge?: string;
+  teams?: {
+    teamA: string;
+    teamB: string;
+    tournament?: string;
+    teamAShort?: string;
+    teamBShort?: string;
+    teamAColor?: string;
+    teamBColor?: string;
+  };
 }
+
 
 export interface SeatItem {
   id: string;
@@ -53,6 +75,8 @@ export interface BookingItem {
     eventDate: string;
     startTime: string;
     endTime?: string;
+    image_url?: string;
+    imageUrl?: string;
   };
   user?: {
     id: string;
@@ -128,6 +152,13 @@ class ApiClient {
     });
   }
 
+  async loginWithGoogle(data?: { email?: string; fullName?: string }) {
+    return this.request<{ success: boolean; data: { user: User; token: string } }>('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    });
+  }
+
   async logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
@@ -141,12 +172,21 @@ class ApiClient {
   }
 
   // Event APIs
-  async getEvents(params?: { page?: number; limit?: number; status?: string; search?: string }) {
+  async getEvents(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    category?: string;
+    city?: string;
+  }) {
     const query = new URLSearchParams();
     if (params?.page) query.append('page', params.page.toString());
     if (params?.limit) query.append('limit', params.limit.toString());
     if (params?.status) query.append('status', params.status);
     if (params?.search) query.append('search', params.search);
+    if (params?.category) query.append('category', params.category);
+    if (params?.city) query.append('city', params.city);
 
     const url = `/api/events?${query.toString()}`;
     return this.request<{
@@ -155,6 +195,7 @@ class ApiClient {
       pagination: { page: number; limit: number; total: number; totalPages: number };
     }>(url);
   }
+
 
   async getEvent(eventId: string) {
     return this.request<{ success: boolean; data: EventItem }>(`/api/events/${eventId}`);

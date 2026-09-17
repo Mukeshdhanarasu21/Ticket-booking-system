@@ -1,13 +1,244 @@
 'use client';
-// Event Details & Booking Page — Stadium Concert Seating Plan
-
+// Event Details & Booking Page — Movies, Sports, Concerts, and Summits
 
 import React, { useEffect, useState, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, EventItem, SeatItem } from '@/lib/api/client';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { Calendar, MapPin, Clock, Ticket, AlertCircle, CheckCircle2, Loader2, ArrowLeft, Armchair } from 'lucide-react';
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  Ticket,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  ArrowLeft,
+  Armchair,
+  Film,
+  Trophy,
+  Tv,
+  Sparkles,
+  Shield,
+  Layers,
+  Heart,
+  Info,
+  Share2,
+} from 'lucide-react';
 import PaymentModal from '@/components/PaymentModal';
+
+// ── DATE SELECTION CONFIGURATION (Matches Screenshot 1) ──
+interface DateOption {
+  monthPill?: string;
+  dayNumber: string;
+  dayName: string;
+  fullDate: string;
+}
+
+const CINEMA_DATES: DateOption[] = [
+  { monthPill: 'AUG', dayNumber: '30', dayName: 'Sun', fullDate: '30 Aug (Sun)' },
+  { dayNumber: '31', dayName: 'Mon', fullDate: '31 Aug (Mon)' },
+  { monthPill: 'SEP', dayNumber: '1', dayName: 'Tue', fullDate: '1 Sep (Tue)' },
+  { dayNumber: '2', dayName: 'Wed', fullDate: '2 Sep (Wed)' },
+  { dayNumber: '3', dayName: 'Thu', fullDate: '3 Sep (Thu)' },
+  { dayNumber: '4', dayName: 'Fri', fullDate: '4 Sep (Fri)' },
+];
+
+// ── 2 THEATRES CONFIGURATION (Phoenix & Broadway with Showtimes matching Screenshot 2) ──
+interface TheatreOption {
+  id: string;
+  name: string;
+  shortName: string;
+  location: string;
+  distance: string;
+  logo: string;
+  price: number;
+  priceLabel: string;
+  features: string[];
+  showtimes: { time: string; format: string }[];
+}
+
+const CINEMA_THEATRES: TheatreOption[] = [
+  {
+    id: 'phoenix',
+    name: 'PVR INOX LUXE Cinema 4K RGB Laser Dolby Atmos, Phoenix MarketCity, Velachery, Chennai',
+    shortName: 'Phoenix MarketCity IMAX Screen',
+    location: 'Velachery, Chennai',
+    distance: '10.2 km away',
+    logo: 'PHOENIX LUXE',
+    price: 430,
+    priceLabel: '₹430 / ticket',
+    features: ['🍿 Non-cancellable', '📱 M-Ticket Available', '✨ Recliner Lounges', '🍔 F&B Dine-In'],
+    showtimes: [
+      { time: '10:30 AM', format: 'LUXE 4K' },
+      { time: '02:15 PM', format: 'IMAX 3D' },
+      { time: '06:45 PM', format: 'DOLBY ATMOS' },
+      { time: '10:20 PM', format: 'D-LOUNGE 4K' },
+    ],
+  },
+  {
+    id: 'broadway',
+    name: 'Broadway Cinemas 4K RGB Laser Dolby Atmos, Avinashi Road, Coimbatore',
+    shortName: 'Broadway Cinemas IMAX & 4K RGB',
+    location: 'Avinashi Road, Coimbatore',
+    distance: 'Coimbatore City Center',
+    logo: 'BROADWAY',
+    price: 410,
+    priceLabel: '₹410 / ticket',
+    features: ['📽️ EPIQ Giant Screen', '🍿 F&B Dine-In', '📱 M-Ticket', '🔊 Dolby Atmos 360°'],
+    showtimes: [
+      { time: '11:00 AM', format: 'EPIQ 4K' },
+      { time: '03:15 PM', format: 'DOLBY 7.1' },
+      { time: '07:00 PM', format: 'RGB LASER 4K' },
+      { time: '10:30 PM', format: 'D-LOUNGE 4K' },
+    ],
+  },
+];
+
+
+// ── PHOENIX MARKETCITY IMAX SCREEN SEATING SPECIFICATION (Matches Official Audi 1 Layout 100%) ──
+interface PhoenixRowDef {
+  row: string;
+  tier: 'ELITE' | 'PRIME';
+  price: number;
+  left: (number | 'x' | null)[];
+  center: (number | 'x' | null)[];
+  right: (number | 'x' | null)[];
+}
+
+const PHOENIX_IMAX_CONFIG: PhoenixRowDef[] = [
+  // ── ELITE TIER : ₹441.51 (Rows A to G) ──
+  {
+    row: 'A',
+    tier: 'ELITE',
+    price: 441.51,
+    left: ['x', 'x', 'x', 'x', 'x', 'x', 'x'],
+    center: ['x', 'x', null, null, null, null, null, null, null, null, 'x', 'x', 'x'],
+    right: ['x', 'x', 'x'],
+  },
+  {
+    row: 'B',
+    tier: 'ELITE',
+    price: 441.51,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 15, 14, 13, 12, 11, 10, 'x'],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'C',
+    tier: 'ELITE',
+    price: 441.51,
+    left: ['x', 'x', 32, 31, 'x', 'x', 'x', 'x'],
+    center: [24, 23, 22, 21, 'x', 'x', 'x', 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'D',
+    tier: 'ELITE',
+    price: 441.51,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: ['x', 'x', 'x', 'x', 20, 19, 18, 'x', 'x', 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'E',
+    tier: 'ELITE',
+    price: 441.51,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 'x', 16, 15, 14, 13, 12, 11, 'x', 'x'],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'F',
+    tier: 'ELITE',
+    price: 441.51,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'G',
+    tier: 'ELITE',
+    price: 441.51,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: ['x', 'x', 22, 21, 20, 19, 'x', 'x', 'x', 'x', 14, 13, 12, 11, 10, 'x'],
+    right: [6, 5, 4, 3, 'x', 'x'],
+  },
+
+  // ── PRIME / EXECUTIVE TIER : ₹390.00 (Rows H to P) ──
+  {
+    row: 'H',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 'x', 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'I',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'J',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'K',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [34, 33, 32, 31, 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5, 4, 3, 2, 1],
+  },
+  {
+    row: 'L',
+    tier: 'PRIME',
+    price: 390.0,
+    left: ['x', 'x', 'x', 'x', 30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5],
+  },
+  {
+    row: 'M',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5],
+  },
+  {
+    row: 'N',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5],
+  },
+  {
+    row: 'O',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [30, 29, 28, 27],
+    center: [24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5],
+  },
+  {
+    row: 'P',
+    tier: 'PRIME',
+    price: 390.0,
+    left: [30, 29, 28, 27],
+    center: [23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9],
+    right: [6, 5],
+  },
+];
 
 export default function EventDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = use(params);
@@ -18,18 +249,58 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   const [seats, setSeats] = useState<SeatItem[]>([]);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState<any>(null);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('30 Aug (Sun)');
+  const [selectedTheatreId, setSelectedTheatreId] = useState<string>('phoenix');
+  const [selectedShowtime, setSelectedShowtime] = useState<string>('');
+  const [selectedFormat, setSelectedFormat] = useState<string>('');
+  const [favoriteTheatres, setFavoriteTheatres] = useState<string[]>(['phoenix']);
+  const [selectedLanguageFormat, setSelectedLanguageFormat] = useState<string>('Tamil · IMAX 4K Laser');
+
+  const toggleFavorite = (theatreId: string) => {
+    setFavoriteTheatres((prev) =>
+      prev.includes(theatreId) ? prev.filter((id) => id !== theatreId) : [...prev, theatreId]
+    );
+  };
+
 
   const titleLower = event?.title?.toLowerCase() || '';
-  const isRoadShow = Boolean(titleLower.includes('road show') || titleLower.includes('roadshow'));
+  const categoryUpper = event?.category?.toUpperCase() || '';
 
-  // Music Concerts get Stadium Arena Layout (AR Rahman, Yuvan, Neon Nights — EXCLUDING Kollywood Stars Night & Road Shows)
+  const isMovie = Boolean(
+    categoryUpper === 'MOVIE' ||
+    titleLower.includes('coolie') ||
+    titleLower.includes('avatar') ||
+    titleLower.includes('imax') ||
+    titleLower.includes('cinema')
+  );
+
+  const isSport = Boolean(
+    categoryUpper === 'SPORT' ||
+    titleLower.includes('ipl') ||
+    titleLower.includes('csk') ||
+    titleLower.includes('derby') ||
+    titleLower.includes('cricket') ||
+    titleLower.includes('match')
+  );
+
+  const isRoadShow = Boolean(
+    categoryUpper === 'ROADSHOW' ||
+    titleLower.includes('road show') ||
+    titleLower.includes('roadshow')
+  );
+
+  // Music Concerts get Stadium Arena Layout (AR Rahman, Yuvan, Neon Nights — EXCLUDING Movies, Sports, Road Shows)
   const isMusicConcert = Boolean(
-    (titleLower.includes('concert') || titleLower.includes('music festival') || titleLower.includes('isai mazhai') || titleLower.includes('rhythm of youth')) &&
-    !titleLower.includes('kollywood') &&
+    (categoryUpper === 'CONCERT' ||
+      titleLower.includes('concert') ||
+      titleLower.includes('music festival') ||
+      titleLower.includes('isai mazhai') ||
+      titleLower.includes('rhythm of youth')) &&
+    !isMovie &&
+    !isSport &&
     !isRoadShow
   );
 
@@ -45,15 +316,76 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   });
   const rowKeys = Object.keys(rowsMap).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  const renderSeatButton = (seat: SeatItem) => {
+  // Map of seats by exact seat number e.g. "H18" -> SeatItem
+  const seatByNumberMap = new Map<string, SeatItem>();
+  seats.forEach((s) => {
+    if (s.seatNumber) seatByNumberMap.set(s.seatNumber.toUpperCase(), s);
+  });
+
+  // Set default showtime when event loads (for non-movies)
+  useEffect(() => {
+    if (event?.showtimes && event.showtimes.length > 0 && !isMovie) {
+      setSelectedShowtime(event.showtimes[0]);
+    }
+  }, [event, isMovie]);
+
+
+  const renderImaxSeatCell = (row: string, seatVal: number | 'x' | null, price: number) => {
+    if (seatVal === null) {
+      return <div className="w-6 h-6 sm:w-7 sm:h-7 pointer-events-none" />;
+    }
+
+    if (seatVal === 'x') {
+      return (
+        <div
+          title="Unavailable Seat"
+          className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg border border-slate-700/60 bg-slate-950/60 text-slate-500 flex items-center justify-center text-[10px] font-bold opacity-40 cursor-not-allowed select-none"
+        >
+          ×
+        </div>
+      );
+    }
+
+    const seatCode = `${row}${seatVal}`.toUpperCase();
+    const dbSeat = seatByNumberMap.get(seatCode);
+    const seatId = dbSeat ? dbSeat.id : `${eventId.substring(0, 24)}${seatCode}`;
+    const isSelected = selectedSeatIds.includes(seatId);
+    const isBooked = dbSeat ? dbSeat.status === 'BOOKED' : false;
+
+    return (
+      <button
+        key={`seat-${seatCode}`}
+        type="button"
+        disabled={isBooked}
+        onClick={() => {
+          if (isBooked) return;
+          setSelectedSeatIds((prev) =>
+            prev.includes(seatId) ? prev.filter((id) => id !== seatId) : [...prev, seatId]
+          );
+        }}
+        title={`Seat ${seatCode} (₹${price.toFixed(2)}) - ${isBooked ? 'Booked' : isSelected ? 'Selected' : 'Available'}`}
+        className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg border text-[10px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center ${
+          isBooked
+            ? 'bg-rose-950/40 border-rose-900/60 text-rose-500 cursor-not-allowed opacity-50'
+            : isSelected
+            ? 'bg-sky-500 text-white border-sky-300 ring-2 ring-sky-300/70 shadow-md shadow-sky-500/40 scale-105 font-black'
+            : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-600 hover:border-sky-400 hover:text-sky-300'
+        }`}
+      >
+        <span>{seatVal}</span>
+      </button>
+    );
+  };
+
+  const renderSeatButton = (seat: SeatItem, tierCustomLabel?: string) => {
     if (!seat) return null;
     const isSelected = selectedSeatIds.includes(seat.id);
     const isBooked = seat.status === 'BOOKED';
-    const isVip = seat.seatType === 'VIP' || seat.seatType === 'PREMIUM';
+    const isVip = seat.seatType === 'VIP' || seat.seatType === 'PREMIUM' || seat.row === 'A';
 
     let seatBg = 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700';
     if (isVip) seatBg = 'bg-amber-950/70 text-amber-200 border-amber-700/70 shadow-sm';
-    if (isSelected) seatBg = 'bg-sky-600 text-white border-sky-400 ring-2 ring-sky-400/50 shadow-md';
+    if (isSelected) seatBg = 'bg-sky-600 text-white border-sky-400 ring-2 ring-sky-400/50 shadow-md scale-105';
     if (isBooked) seatBg = 'bg-rose-950/50 text-rose-500 border-rose-900/60 cursor-not-allowed opacity-50';
 
     return (
@@ -61,13 +393,15 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         key={seat.id}
         disabled={isBooked}
         onClick={() => toggleSeatSelection(seat)}
-        title={`Seat ${seat.seatNumber} (${seat.seatType}) - ${seat.status}`}
+        title={`Seat ${seat.seatNumber} ${tierCustomLabel ? `(${tierCustomLabel})` : `(${seat.seatType})`} - ${seat.status}`}
         className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg border text-xs font-bold transition-all duration-150 flex flex-col items-center justify-center ${seatBg}`}
       >
         <span>{seat.seatNumber}</span>
       </button>
     );
   };
+
+
 
 
   // Auto-allocate pass seat IDs for Road Shows
@@ -126,7 +460,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
     let currentUser = user;
     if (!currentUser) {
       try {
-        await login({ email: 'user@eventbooking.com', password: 'password123' });
+        await login({ email: 'user@bookie.com', password: 'password123' });
       } catch (err) {
         router.push('/login');
         throw new Error('Authentication required');
@@ -245,13 +579,25 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  // Group seats by row (already computed above)
-  const selectedSeatsList = seats
-    .filter((s) => selectedSeatIds.includes(s.id))
-    .map((s) => s.seatNumber);
+  // Group seats and calculate dynamic Phoenix IMAX pricing
+  const selectedSeatsList = selectedSeatIds.map((sid) => {
+    const seatObj = seats.find((s) => s.id === sid);
+    if (seatObj?.seatNumber) return seatObj.seatNumber;
+    const match = sid.match(/[A-P][0-9]+$/i);
+    return match ? match[0].toUpperCase() : sid;
+  });
 
   const pricePerSeat = Number(event.price ?? 0);
-  const totalCost = pricePerSeat * selectedSeatIds.length;
+  const totalCost = isMovie
+    ? selectedSeatIds.reduce((acc, sid) => {
+        const seatObj = seats.find((s) => s.id === sid);
+        const code = seatObj?.seatNumber || sid.match(/[A-P][0-9]+$/i)?.[0] || '';
+        const rowChar = code.charAt(0).toUpperCase();
+        const isEliteRow = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].includes(rowChar);
+        return acc + (isEliteRow ? 441.51 : 390.0);
+      }, 0)
+    : pricePerSeat * selectedSeatIds.length;
+
 
   return (
     <div className="space-y-8">
@@ -263,38 +609,54 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         <span>Back to Events</span>
       </button>
 
-      {/* Event Banner Info */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-4 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Event Hero Banner with Relevant Image */}
+      <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl">
+        <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-950">
+          <img
+            src={event.image_url || event.imageUrl || '/events/global-tech-summit.jpg'}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/20" />
 
-          <span className="px-3 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
-            {event.status}
-          </span>
-          <div className="flex items-center space-x-4 text-xs text-slate-400">
-            <span>Total Capacity: <strong className="text-white">{event.capacity || event.total_capacity}</strong></span>
-            <span>Available: <strong className="text-emerald-400">{event.availableSeats ?? '-'}</strong></span>
-            <span>Booked: <strong className="text-rose-400">{event.bookedSeats ?? '-'}</strong></span>
-            <span className="ml-2 px-2 py-0.5 rounded bg-amber-950/70 border border-amber-700/50 text-amber-300 font-bold">
-              ₹{Number(event.price ?? 0).toLocaleString('en-IN')} / {isRoadShow ? 'pass' : 'seat'}
+          {/* Top floating badges */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-950/90 text-emerald-300 border border-emerald-800/80 backdrop-blur-md">
+              {event.status}
             </span>
+            <span className="px-3.5 py-1.5 rounded-xl bg-slate-950/85 border border-amber-500/50 text-amber-300 font-extrabold text-sm backdrop-blur-md shadow-lg">
+              {isMovie ? '₹410 - ₹430' : `₹${Number(event.price ?? 0).toLocaleString('en-IN')}`} <span className="text-xs font-normal text-slate-400">/ {isRoadShow ? 'pass' : 'seat'}</span>
+            </span>
+          </div>
+
+          {/* Bottom Banner Title & Description */}
+          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-8 sm:right-8 space-y-2">
+            <h1 className="text-2xl sm:text-4xl font-black text-white drop-shadow-md leading-tight">
+              {event.title}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-200 max-w-3xl line-clamp-2 leading-relaxed drop-shadow-sm">
+              {event.description}
+            </p>
           </div>
         </div>
 
-        <h1 className="text-3xl font-extrabold text-white">{event.title}</h1>
-        <p className="text-sm text-slate-300 max-w-3xl leading-relaxed">{event.description}</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-300">
-          <div className="flex items-center space-x-2">
+        {/* Info Strip */}
+        <div className="p-4 sm:p-6 bg-slate-900/90 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs text-slate-300">
+          <div className="flex items-center space-x-2.5">
             <MapPin className="w-4 h-4 text-rose-400 flex-shrink-0" />
-            <span className="truncate">{event.venue}</span>
+            <span className="truncate font-medium">{event.venue}</span>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <Calendar className="w-4 h-4 text-sky-400 flex-shrink-0" />
-            <span>{event.event_date || event.eventDate}</span>
+            <span className="font-medium">{event.event_date || event.eventDate}</span>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <span>{event.start_time || event.startTime} - {event.end_time || event.endTime}</span>
+            <span className="font-medium">{event.start_time || event.startTime} - {event.end_time || event.endTime}</span>
+          </div>
+          <div className="flex items-center space-x-3 text-slate-400 sm:justify-end">
+            <span>Available: <strong className="text-emerald-400 font-bold">{event.availableSeats ?? '-'}</strong></span>
+            <span>Booked: <strong className="text-rose-400 font-bold">{event.bookedSeats ?? '-'}</strong></span>
           </div>
         </div>
       </div>
@@ -309,8 +671,347 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* Road Show General Admission Pass UI vs Seating Layout */}
-      {isRoadShow ? (
+      {isMovie ? (
+        /* ── MOVIE TICKET BOOKING: DATES (SCREENSHOT 1) + 2 THEATRES (SCREENSHOT 2) + PHOENIX IMAX SEATING ── */
+        <div className="space-y-8">
+          {/* ── 1. DATE SELECTION BAR (MATCHING SCREENSHOT 1) ── */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-sky-400" />
+                <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                  Select Movie Date
+                </h3>
+              </div>
+              <span className="text-xs text-slate-400 font-semibold">
+                Current Date: <strong className="text-white">{selectedDate}</strong>
+              </span>
+            </div>
+
+            {/* Horizontal Scrollable Dates Strip */}
+            <div className="flex items-center space-x-2.5 overflow-x-auto pb-2 custom-scrollbar">
+              {CINEMA_DATES.map((d, idx) => {
+                const isSelected = selectedDate === d.fullDate;
+                return (
+                  <React.Fragment key={idx}>
+                    {/* Month Pill Separator if new month */}
+                    {d.monthPill && (
+                      <div className="flex-shrink-0 bg-slate-800/90 border border-slate-700 text-slate-300 text-[10px] font-black uppercase px-2.5 py-4 rounded-2xl flex items-center justify-center tracking-widest shadow-inner select-none">
+                        {d.monthPill}
+                      </div>
+                    )}
+
+                    {/* Date Card */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDate(d.fullDate)}
+                      className={`flex-shrink-0 min-w-[62px] sm:min-w-[70px] py-2.5 px-3 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 border ${
+                        isSelected
+                          ? 'bg-slate-950 border-slate-600 text-white shadow-xl ring-2 ring-sky-400/80 scale-105'
+                          : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-white hover:border-slate-700'
+                      }`}
+                    >
+                      <span className={`text-base sm:text-lg font-black ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                        {d.dayNumber}
+                      </span>
+                      <span className={`text-[11px] font-bold ${isSelected ? 'text-sky-400' : 'text-slate-500'}`}>
+                        {d.dayName}
+                      </span>
+                    </button>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
+            {/* Language & Screen Format Filters */}
+            <div className="flex items-center space-x-2 overflow-x-auto pt-1 text-xs border-t border-slate-800/80">
+              <span className="text-slate-500 font-bold uppercase text-[10px] flex-shrink-0 mr-1">Formats:</span>
+              {[
+                'Tamil · IMAX 4K Laser',
+                'Tamil · 2D Dolby Atmos',
+                'English · 3D Laser',
+                'Telugu · 2D Atmos',
+                'Hindi · 4K RGB',
+              ].map((fmt) => (
+                <button
+                  key={fmt}
+                  type="button"
+                  onClick={() => setSelectedLanguageFormat(fmt)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-bold flex-shrink-0 transition border ${
+                    selectedLanguageFormat === fmt
+                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                      : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  {fmt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 2. TWO THEATRES WITH SHOWTIMES (MATCHING SCREENSHOT 2: PHOENIX & BROADWAY) ── */}
+          <div className="space-y-5">
+            <div className="flex items-center space-x-2">
+              <Film className="w-5 h-5 text-rose-400" />
+              <h2 className="text-lg sm:text-xl font-black text-white">Theatres &amp; Showtimes</h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5">
+              {CINEMA_THEATRES.map((theatre) => {
+                const isCurrentTheatre = selectedTheatreId === theatre.id;
+                const isFav = favoriteTheatres.includes(theatre.id);
+
+                return (
+                  <div
+                    key={theatre.id}
+                    className={`bg-slate-900/90 border rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl transition-all ${
+                      isCurrentTheatre ? 'border-slate-700 ring-1 ring-slate-700/80 bg-slate-900/95' : 'border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    {/* Theatre Header Info */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center space-x-3.5">
+                        {/* Circular Logo */}
+                        <div className="w-12 h-12 rounded-full border border-slate-700 bg-black flex items-center justify-center text-[10px] font-black text-center uppercase tracking-tighter text-amber-300 shadow-md flex-shrink-0">
+                          {theatre.logo}
+                        </div>
+
+                        {/* Name, Info Tooltip, Facilities */}
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2 flex-wrap">
+                            <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
+                              {theatre.name}
+                            </h3>
+                            <span
+                              className="text-slate-500 hover:text-slate-300 cursor-pointer"
+                              title="Theatre amenities, parking, and wheelchair accessibility information"
+                            >
+                              <Info className="w-3.5 h-3.5 inline text-slate-400 hover:text-white" />
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 font-medium">
+                            <span className="text-emerald-400 font-bold">{theatre.distance}</span>
+                            <span>·</span>
+                            <span className="bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-amber-500/40 text-amber-300 font-extrabold text-[10px]">
+                              {theatre.priceLabel}
+                            </span>
+                            <span>·</span>
+                            {theatre.features.map((feat) => (
+                              <span
+                                key={feat}
+                                className="bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 text-slate-300 text-[10px]"
+                              >
+                                {feat}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Favorite Heart Icon */}
+                      <button
+                        type="button"
+                        onClick={() => toggleFavorite(theatre.id)}
+                        className="text-slate-500 hover:text-rose-400 transition p-1.5 flex-shrink-0"
+                        title={isFav ? 'Remove from favorites' : 'Add to favorite theatres'}
+                      >
+                        <Heart className={`w-5 h-5 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
+                      </button>
+                    </div>
+
+                    {/* Showtimes Buttons Row */}
+                    <div className="pt-2 flex flex-wrap items-center gap-3">
+                      {theatre.showtimes.map((slot) => {
+                        return (
+                          <button
+                            key={slot.time}
+                            type="button"
+                            onClick={() => {
+                              const params = new URLSearchParams({
+                                theatre: theatre.id,
+                                theatreName: theatre.name,
+                                date: selectedDate,
+                                time: slot.time,
+                                format: slot.format,
+                              });
+                              router.push(`/events/${eventId}/seats?${params.toString()}`);
+                            }}
+                            className="px-4 py-2.5 rounded-xl text-center transition-all duration-150 border bg-slate-950/90 border-slate-800 text-slate-200 hover:border-emerald-500 hover:bg-slate-800/90 hover:scale-105 group shadow-md"
+                          >
+                            <div className="text-xs sm:text-sm font-black text-emerald-400 group-hover:text-emerald-300 transition">
+                              {slot.time}
+                            </div>
+                            <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 group-hover:text-slate-200 transition">
+                              {slot.format}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Quick helper tip banner */}
+            <div className="bg-slate-950/60 border border-dashed border-slate-800/90 rounded-2xl p-4 flex items-center justify-between text-xs text-slate-400">
+              <div className="flex items-center space-x-2.5">
+                <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <span>Click any preferred showtime above to choose your seats in the cinema hall.</span>
+              </div>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden sm:inline">
+                Instant Seat Allocation
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : isSport ? (
+        /* ── SPORTS STADIUM MODE ── */
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-8 shadow-2xl overflow-hidden">
+          {/* Match Scoreboard Header */}
+          {event.teams ? (
+            <div className="bg-slate-950 border border-emerald-500/30 rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
+              <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">
+                {event.teams.tournament || 'STADIUM CHAMPIONSHIP'}
+              </p>
+              <div className="flex items-center justify-center space-x-6 sm:space-x-12">
+                <div className="text-center">
+                  <span className="text-xl sm:text-2xl font-black text-amber-400">{event.teams.teamAShort || 'TEAM A'}</span>
+                  <p className="text-xs font-semibold text-slate-300">{event.teams.teamA}</p>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-black text-slate-400">
+                  VS
+                </div>
+                <div className="text-center">
+                  <span className="text-xl sm:text-2xl font-black text-sky-400">{event.teams.teamBShort || 'TEAM B'}</span>
+                  <p className="text-xs font-semibold text-slate-300">{event.teams.teamB}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center space-y-1">
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+                <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Stadium Match Seating</span>
+              </div>
+              <h2 className="text-2xl font-extrabold text-white">Select Stadium Stand Seats</h2>
+            </div>
+          )}
+
+          {/* Legend */}
+          <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-slate-300 border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 rounded bg-amber-950/80 border border-amber-500/80" />
+              <span>Pavilion VIP Terrace</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 rounded bg-emerald-950/80 border border-emerald-500/80" />
+              <span>North / South Stands</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 rounded bg-slate-800 border border-slate-700" />
+              <span>General Bleachers</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 rounded bg-sky-600 border border-sky-400 shadow-sm" />
+              <span className="font-bold text-white">Selected</span>
+            </div>
+          </div>
+
+          {/* STADIUM PITCH / GROUND GRAPHIC */}
+          <div className="max-w-2xl mx-auto space-y-2 text-center">
+            <div className="py-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-emerald-900/60 to-emerald-950/80 border-2 border-emerald-500/40 text-center shadow-inner">
+              <span className="text-xs font-black tracking-widest text-emerald-300 uppercase">
+                🏟️ CENTRAL CRICKET PITCH / STADIUM TURF 🏟️
+              </span>
+            </div>
+          </div>
+
+          {/* STADIUM STANDS SEATING GRID */}
+          <div className="max-w-3xl mx-auto space-y-6 pt-2">
+            {/* VIP PAVILION STAND (Row A, B) */}
+            {rowKeys.filter((r) => r === 'A' || r === 'B').length > 0 && (
+              <div className="bg-amber-950/20 border-2 border-amber-500/40 rounded-2xl p-4 space-y-3 text-center">
+                <p className="text-xs font-black text-amber-400 uppercase tracking-wider">
+                  👑 South Pavilion VIP Terrace &amp; Hospitality Box
+                </p>
+                <div className="space-y-2">
+                  {rowKeys.filter((r) => r === 'A' || r === 'B').map((rowKey) => (
+                    <div key={rowKey} className="flex items-center justify-center space-x-3">
+                      <span className="text-xs font-bold text-amber-300 w-6 text-center">{rowKey}</span>
+                      <div className="flex flex-wrap gap-1.5 justify-center">
+                        {(rowsMap[rowKey] ?? []).map((seat) => renderSeatButton(seat, 'VIP Pavilion'))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* NORTH & EAST STANDS */}
+            <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 space-y-3 text-center">
+              <p className="text-xs font-black text-emerald-400 uppercase tracking-wider">
+                🏟️ Grandstands &amp; Tier Seating
+              </p>
+              <div className="space-y-2 pt-1">
+                {rowKeys.filter((r) => r !== 'A' && r !== 'B').map((rowKey) => (
+                  <div key={rowKey} className="flex items-center justify-center space-x-3">
+                    <button
+                      onClick={() => toggleRowSelection(rowKey)}
+                      className="w-7 h-7 rounded-md text-xs font-bold flex items-center justify-center bg-slate-800 text-slate-300 border border-slate-700"
+                    >
+                      {rowKey}
+                    </button>
+                    <div className="flex flex-wrap gap-1.5 justify-center">
+                      {(rowsMap[rowKey] ?? []).map((seat) => renderSeatButton(seat))}
+                    </div>
+                    <button
+                      onClick={() => toggleRowSelection(rowKey)}
+                      className="w-7 h-7 rounded-md text-xs font-bold flex items-center justify-center bg-slate-800 text-slate-300 border border-slate-700"
+                    >
+                      {rowKey}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Selection Bar & Confirm CTA */}
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <p className="text-xs text-slate-400 font-semibold uppercase">Stadium Reservation</p>
+              <p className="text-base font-bold text-white">
+                {selectedSeatsList.length > 0 ? (
+                  <span className="text-emerald-400">{selectedSeatsList.join(', ')}</span>
+                ) : (
+                  <span className="text-slate-500 font-normal">No seats selected</span>
+                )}
+              </p>
+              {selectedSeatIds.length > 0 && (
+                <p className="text-xs text-slate-400">
+                  {selectedSeatIds.length} seat{selectedSeatIds.length > 1 ? 's' : ''} ×{' '}
+                  <span className="text-amber-400 font-semibold">₹{pricePerSeat.toLocaleString('en-IN')}</span>
+                  {' '}={' '}
+                  <span className="text-white font-bold text-sm">₹{totalCost.toLocaleString('en-IN')}</span>
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={handleOpenPayment}
+              disabled={selectedSeatIds.length === 0}
+              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition shadow-lg shadow-emerald-600/30 disabled:opacity-40 flex items-center justify-center space-x-2"
+            >
+              <Trophy className="w-4 h-4" />
+              <span>Proceed to Pay — ₹{totalCost.toLocaleString('en-IN')}</span>
+            </button>
+          </div>
+        </div>
+      ) : isRoadShow ? (
+
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-8 shadow-xl">
           <div className="text-center space-y-2">
             <div className="inline-flex p-3.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-1">

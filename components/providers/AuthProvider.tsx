@@ -2,12 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api, User } from '@/lib/api/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (data: any) => Promise<void>;
   register: (data: any) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   register: async () => {},
+  loginWithGoogle: async () => {},
   logout: async () => {},
 });
 
@@ -53,16 +56,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.data.user);
   };
 
+  const loginWithGoogle = async () => {
+    const supabase = getSupabaseBrowserClient();
+    const redirectTo = `${window.location.origin}/auth/callback?next=/events`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    });
+
+    if (error) throw error;
+  };
+
   const logout = async () => {
     try {
       await api.logout();
+    } catch {}
+    try {
+      await getSupabaseBrowserClient().auth.signOut();
     } catch {}
     localStorage.removeItem('auth_token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

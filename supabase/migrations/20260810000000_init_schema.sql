@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- 2. EVENTS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.events (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     venue TEXT NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.events (
 -- 3. SEATS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.seats (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
     seat_number TEXT NOT NULL,
     row_number TEXT NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.seats (
 -- 4. BOOKINGS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.bookings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
     event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE RESTRICT,
     booking_reference TEXT NOT NULL UNIQUE,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
 -- 5. BOOKING_SEATS TABLE
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.booking_seats (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     booking_id UUID NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
     seat_id UUID NOT NULL REFERENCES public.seats(id) ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

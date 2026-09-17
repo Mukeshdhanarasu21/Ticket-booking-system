@@ -46,7 +46,7 @@ export async function loginUser(body: unknown) {
     return {
       user: {
         id: adminId,
-        email: 'admin@eventbooking.com',
+        email: email || profile?.email || 'admin@bookie.com',
         fullName: profile?.full_name || 'System Admin',
         role: 'ADMIN' as const,
       },

@@ -19,7 +19,10 @@ export const eventQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(10),
   status: z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED']).optional(),
   search: z.string().optional(),
+  category: z.string().optional(),
+  city: z.string().optional(),
 });
+
 
 export const createEventSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters'),
